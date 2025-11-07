@@ -2,9 +2,19 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 dotenv.config();
-
+import cors from "cors";
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:3000", // your frontend URL
+    credentials: true, // ✅ allow cookies
+  })
+);
+
+app.use(cookieParser());
 app.use(bodyParser.json()); // Parse URL-encoded data
 
 let rToken = [];
@@ -46,7 +56,12 @@ app.post("/login", (req, res) => {
   const token = CreatJwt(user);
   const refreshToken = jwt.sign(user, process.env.REF_SECRET);
   rToken.push(refreshToken);
-  //   const token = jwt.sign(user, process.env.JWT_SECRET);
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false,
+  });
+
   res.json({ token: token, refreshToken: refreshToken });
 });
 function CreatJwt(user) {
